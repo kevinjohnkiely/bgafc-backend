@@ -1,0 +1,14 @@
+{
+  "name": "ballingarry-afc-backend",
+  "version": "1.0.0",
+  "description": "NodeJS API backend for new Ballingarry AFC web application 2023",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kevin John Kiely",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
