@@ -1,82 +1,149 @@
 const fs = require('fs');
 
-const posts = JSON.parse(fs.readFileSync(`${__dirname}/../posts.json`));
+const postsOriginal = JSON.parse(
+  fs.readFileSync(`${__dirname}/../dev-data/posts-changed-4.json`)
+);
+// const slicedPosts = postsOriginal.slice(0, 100);
+const newPosts = postsOriginal.map((el) => {
+  el.status = 'Published';
+  // if its an array do this
+  // if (Array.isArray(el.categories)) {
+  //   for (let x = 0; x < el.categories.length; x++) {
+  //     el.categories[x] = el.categories[x].nicename;
+  // console.log('it is', el.categories[x].nicename);
+  // }
+  // else if object do this
+  // } else {
+  //   el.categories = [el.categories.nicename];
+  // }
 
-exports.checkID = (req, res, next, val) => {
-  console.log(`The tour id is - ${val}`);
+  return el;
+});
+// console.log(newPosts);
+// fs.writeFile(
+//   `${__dirname}/../dev-data/posts-changed-1.json`,
+//   JSON.stringify(newPosts),
+//   (err) => {
+//     console.log(err);
+//   }
+// );
+///////////////////////////
 
-  if (req.params.id * 1 > posts.length) {
-    return res.status(404).json({
+const Post = require('../models/postModel');
+
+exports.changePosts = async (req, res) => {
+  try {
+    fs.writeFile(
+      `${__dirname}/../dev-data/posts-changed-5.json`,
+      JSON.stringify(newPosts),
+      (err) => {
+        console.log(err);
+      }
+    );
+    res.status(200).json({
+      status: 'Success',
+      results: newPosts.length,
+      data: {
+        posts: newPosts,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
       status: 'Fail',
-      message: 'No tour with that ID!',
+      message: error,
     });
   }
-  next();
 };
 
-exports.checkBody = (req, res, next) => {
-  if (!req.body.title || !req.body.body) {
-    return res.status(400).json({
+exports.getAllPosts = async (req, res) => {
+  try {
+    const posts = await Post.find({});
+
+    res.status(200).json({
+      status: 'Success',
+      results: posts.length,
+      data: {
+        posts: posts,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
       status: 'Fail',
-      message: 'Missing title/body',
+      message: error,
     });
   }
-  next();
 };
 
-exports.getAllPosts = (req, res) => {
-  res.status(200).json({
-    status: 'Success',
-    results: posts.length,
-    data: {
-      posts: posts,
-    },
-  });
+exports.getPost = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    res.status(200).json({
+      status: 'Success',
+      data: {
+        post: post,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: 'Fail',
+      message: error,
+    });
+  }
 };
 
-exports.getPost = (req, res) => {
-  console.log(req.params);
+exports.createPost = async (req, res) => {
+  // const newTour = new Tour({})
+  // newTour.save()
+  try {
+    const newPost = await Post.create(req.body);
 
-  const id = req.params.id * 1;
-  const post = posts.find((el) => el.id === id);
-
-  res.status(200).json({
-    status: 'Success',
-    data: {
-      post: post,
-    },
-  });
-};
-
-exports.createPost = (req, res) => {
-  // console.log(req.body)
-  const newId = posts[posts.length - 1].id + 1;
-  // eslint-disable-next-line prefer-object-spread
-  const newPost = Object.assign({ id: newId }, req.body);
-
-  posts.push(newPost);
-  fs.writeFile(`${__dirname}/posts.json`, JSON.stringify(posts), () => {
     res.status(201).json({
       status: 'Success',
       data: {
         post: newPost,
       },
     });
-  });
+  } catch (error) {
+    res.status(400).json({
+      status: 'Fail',
+      message: error,
+    });
+  }
 };
 
-exports.updatePost = (req, res) => {
-  res.status(200).json({
-    status: 'Success',
-    data: {
-      post: '<Updated post goes here>',
-    },
-  });
+exports.updatePost = async (req, res) => {
+  try {
+    const post = await Post.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    res.status(200).json({
+      status: 'Success',
+      data: {
+        post: post,
+      },
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: 'Fail',
+      message: error,
+    });
+  }
 };
 
-exports.deletePost = (req, res) => {
-  res.status(204).json({
-    status: 'Success',
-    data: null,
-  });
+exports.deletePost = async (req, res) => {
+  try {
+    await Post.findByIdAndDelete(req.params.id);
+
+    res.status(204).json({
+      status: 'Success',
+      data: null,
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: 'Fail',
+      message: error,
+    });
+  }
 };
