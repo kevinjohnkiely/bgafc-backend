@@ -30,10 +30,10 @@ const importData = async () => {
   try {
     await Post.create(posts);
     console.log('Data was loaded into DB!');
-    process.exit();
   } catch (error) {
     console.log(error);
   }
+  process.exit();
 };
 
 // DELETE ALL DB DATA FROM COLLECTION!
@@ -41,10 +41,10 @@ const deleteData = async () => {
   try {
     await Post.deleteMany();
     console.log('Data was wiped from the DB!');
-    process.exit();
   } catch (error) {
     console.log(error);
   }
+  process.exit();
 };
 
 if (process.argv[2] === '--import') {

@@ -30,6 +30,7 @@ const newPosts = postsOriginal.map((el) => {
 ///////////////////////////
 
 const Post = require('../models/postModel');
+const APIFeatures = require('../utils/apiFeatures');
 
 exports.changePosts = async (req, res) => {
   try {
@@ -57,8 +58,15 @@ exports.changePosts = async (req, res) => {
 
 exports.getAllPosts = async (req, res) => {
   try {
-    const posts = await Post.find({});
+    // 3 - execute the query
+    const features = new APIFeatures(Post.find(), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    const posts = await features.query;
 
+    // 4 - send the response
     res.status(200).json({
       status: 'Success',
       results: posts.length,
@@ -67,7 +75,7 @@ exports.getAllPosts = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(400).json({
+    res.status(404).json({
       status: 'Fail',
       message: error,
     });
@@ -139,6 +147,78 @@ exports.deletePost = async (req, res) => {
     res.status(204).json({
       status: 'Success',
       data: null,
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: 'Fail',
+      message: error,
+    });
+  }
+};
+
+exports.getArchivePosts = async (req, res) => {
+  try {
+    const year = req.params.year * 1;
+    const month = req.params.month * 1;
+
+    console.log(year, month);
+
+    const posts = await Post.aggregate([
+      {
+        $match: {
+          datePublished: {
+            $gte: new Date(`${year}-${month}-01`),
+            $lte: new Date(`${year}-${month}-31T23:59:59.000Z`),
+          },
+        },
+      },
+      {
+        $sort: {
+          datePublished: -1,
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        posts: posts,
+        amountOfPosts: posts.length,
+      },
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: 'Fail',
+      message: error,
+    });
+  }
+};
+
+exports.getMonthlyPostTotals = async (req, res) => {
+  try {
+    const totals = await Post.aggregate([
+      {
+        $group: {
+          _id: {
+            the_year: { $year: '$datePublished' },
+            the_month: { $month: '$datePublished' },
+          },
+          // _id: { $month: '$datePublished' },
+          numPostsByMOnth: { $sum: 1 },
+        },
+      },
+      {
+        $sort: {
+          _id: -1,
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        totals: totals,
+      },
     });
   } catch (error) {
     res.status(404).json({

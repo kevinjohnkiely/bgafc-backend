@@ -18,6 +18,7 @@ const postSchema = new mongoose.Schema({
   status: {
     type: String,
     required: [true, 'A post must have a text Status!'],
+    // select: false,
   },
   categories: {
     type: [String],
