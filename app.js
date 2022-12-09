@@ -1,12 +1,14 @@
 const express = require('express');
-// const fs = require('fs');
 const morgan = require('morgan');
+
+const AppError = require('./utils/appError');
+const globalErrorHandler = require('./controllers/errorController');
+
 const postRouter = require('./routes/postRoutes');
 const userRouter = require('./routes/userRoutes');
 
 const app = express();
 
-// 1 - MIDDLEWARES
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
@@ -14,14 +16,16 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json());
 // app.use(express.static(`${__dirname}/public`))
 
-app.use((req, res, next) => {
-  console.log('Hello from middleware ***');
-  next();
-});
-
-// 3 - ROUTES
-
 app.use('/api/v1/posts', postRouter);
 app.use('/api/v1/users', userRouter);
+
+app.all('*', (req, res, next) => {
+  // if Next gets argument, its automatically an ERROR and will skip ALL other middlewares
+  // and go straight to globale error handling middleware and be executed
+  next(new AppError(`Cannot find ${req.originalUrl} on this server!`, 404));
+});
+
+// With the 4 args - express sees this as error middleware, and only call when error //
+app.use(globalErrorHandler);
 
 module.exports = app;

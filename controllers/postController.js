@@ -31,6 +31,8 @@ const newPosts = postsOriginal.map((el) => {
 
 const Post = require('../models/postModel');
 const APIFeatures = require('../utils/apiFeatures');
+const AppError = require('../utils/appError');
+const catchAsync = require('../utils/catchAsync');
 
 exports.changePosts = async (req, res) => {
   try {
@@ -56,174 +58,136 @@ exports.changePosts = async (req, res) => {
   }
 };
 
-exports.getAllPosts = async (req, res) => {
-  try {
-    // 3 - execute the query
-    const features = new APIFeatures(Post.find(), req.query)
-      .filter()
-      .sort()
-      .limitFields()
-      .paginate();
-    const posts = await features.query;
+exports.getAllPosts = catchAsync(async (req, res, next) => {
+  const features = new APIFeatures(Post.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+  const posts = await features.query;
 
-    // 4 - send the response
-    res.status(200).json({
-      status: 'Success',
-      results: posts.length,
-      data: {
-        posts: posts,
-      },
-    });
-  } catch (error) {
-    res.status(404).json({
-      status: 'Fail',
-      message: error,
-    });
+  res.status(200).json({
+    status: 'Success',
+    results: posts.length,
+    data: {
+      posts: posts,
+    },
+  });
+});
+
+exports.getPost = catchAsync(async (req, res, next) => {
+  const post = await Post.findById(req.params.id);
+
+  if (!post) {
+    return next(new AppError('No post found with that ID', 404));
   }
-};
 
-exports.getPost = async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
+  res.status(200).json({
+    status: 'Success',
+    data: {
+      post: post,
+    },
+  });
+});
 
-    res.status(200).json({
-      status: 'Success',
-      data: {
-        post: post,
-      },
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: 'Fail',
-      message: error,
-    });
-  }
-};
-
-exports.createPost = async (req, res) => {
+exports.createPost = catchAsync(async (req, res, next) => {
   // const newTour = new Tour({})
   // newTour.save()
-  try {
-    const newPost = await Post.create(req.body);
+  const newPost = await Post.create(req.body);
 
-    res.status(201).json({
-      status: 'Success',
-      data: {
-        post: newPost,
-      },
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: 'Fail',
-      message: error,
-    });
+  res.status(201).json({
+    status: 'Success',
+    data: {
+      post: newPost,
+    },
+  });
+});
+
+exports.updatePost = catchAsync(async (req, res, next) => {
+  const post = await Post.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!post) {
+    return next(new AppError('No post found with that ID', 404));
   }
-};
 
-exports.updatePost = async (req, res) => {
-  try {
-    const post = await Post.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    res.status(200).json({
-      status: 'Success',
-      data: {
-        post: post,
-      },
-    });
-  } catch (error) {
-    res.status(404).json({
-      status: 'Fail',
-      message: error,
-    });
+  res.status(200).json({
+    status: 'Success',
+    data: {
+      post: post,
+    },
+  });
+});
+
+exports.deletePost = catchAsync(async (req, res, next) => {
+  const post = await Post.findByIdAndDelete(req.params.id);
+
+  if (!post) {
+    return next(new AppError('No post found with that ID', 404));
   }
-};
 
-exports.deletePost = async (req, res) => {
-  try {
-    await Post.findByIdAndDelete(req.params.id);
+  res.status(204).json({
+    status: 'Success',
+    data: null,
+  });
+});
 
-    res.status(204).json({
-      status: 'Success',
-      data: null,
-    });
-  } catch (error) {
-    res.status(404).json({
-      status: 'Fail',
-      message: error,
-    });
-  }
-};
+exports.getArchivePosts = catchAsync(async (req, res, next) => {
+  const year = req.params.year * 1;
+  const month = req.params.month * 1;
 
-exports.getArchivePosts = async (req, res) => {
-  try {
-    const year = req.params.year * 1;
-    const month = req.params.month * 1;
+  console.log(year, month);
 
-    console.log(year, month);
-
-    const posts = await Post.aggregate([
-      {
-        $match: {
-          datePublished: {
-            $gte: new Date(`${year}-${month}-01`),
-            $lte: new Date(`${year}-${month}-31T23:59:59.000Z`),
-          },
+  const posts = await Post.aggregate([
+    {
+      $match: {
+        datePublished: {
+          $gte: new Date(`${year}-${month}-01`),
+          $lte: new Date(`${year}-${month}-31T23:59:59.000Z`),
         },
       },
-      {
-        $sort: {
-          datePublished: -1,
-        },
+    },
+    {
+      $sort: {
+        datePublished: -1,
       },
-    ]);
+    },
+  ]);
 
-    res.status(200).json({
-      status: 'success',
-      data: {
-        posts: posts,
-        amountOfPosts: posts.length,
-      },
-    });
-  } catch (error) {
-    res.status(404).json({
-      status: 'Fail',
-      message: error,
-    });
-  }
-};
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: posts,
+      amountOfPosts: posts.length,
+    },
+  });
+});
 
-exports.getMonthlyPostTotals = async (req, res) => {
-  try {
-    const totals = await Post.aggregate([
-      {
-        $group: {
-          _id: {
-            the_year: { $year: '$datePublished' },
-            the_month: { $month: '$datePublished' },
-          },
-          // _id: { $month: '$datePublished' },
-          numPostsByMOnth: { $sum: 1 },
+exports.getMonthlyPostTotals = catchAsync(async (req, res, next) => {
+  const totals = await Post.aggregate([
+    {
+      $group: {
+        _id: {
+          the_year: { $year: '$datePublished' },
+          the_month: { $month: '$datePublished' },
         },
+        // _id: { $month: '$datePublished' },
+        numPostsByMOnth: { $sum: 1 },
       },
-      {
-        $sort: {
-          _id: -1,
-        },
+    },
+    {
+      $sort: {
+        _id: -1,
       },
-    ]);
+    },
+  ]);
 
-    res.status(200).json({
-      status: 'success',
-      data: {
-        totals: totals,
-      },
-    });
-  } catch (error) {
-    res.status(404).json({
-      status: 'Fail',
-      message: error,
-    });
-  }
-};
+  res.status(200).json({
+    status: 'success',
+    data: {
+      totals: totals,
+    },
+  });
+});
