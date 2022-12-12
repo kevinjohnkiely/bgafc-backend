@@ -9,13 +9,13 @@ const {
   getMonthlyPostTotals,
   changePosts,
 } = require('../controllers/postController');
+const { loggedInOnly } = require('../controllers/authController');
 
 const router = express.Router();
 
-// router.param('id', checkID);
 router.route('/changePosts').get(changePosts);
 
-router.route('/').get(getAllPosts).post(createPost);
+router.route('/').get(loggedInOnly, getAllPosts).post(createPost);
 router.route('/:id').get(getPost).patch(updatePost).delete(deletePost);
 
 // route for post archives
