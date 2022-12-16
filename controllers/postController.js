@@ -76,7 +76,8 @@ exports.getAllPosts = catchAsync(async (req, res, next) => {
 });
 
 exports.getPost = catchAsync(async (req, res, next) => {
-  const post = await Post.findById(req.params.id);
+  // const post = await Post.findById(req.params.id);
+  const post = await Post.findOne({ slug: req.params.slug });
 
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
