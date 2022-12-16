@@ -11,6 +11,7 @@ const globalErrorHandler = require('./controllers/errorController');
 
 const userRouter = require('./routes/userRoutes');
 const postRouter = require('./routes/postRoutes');
+const playerRouter = require('./routes/playerRoutes');
 
 const app = express();
 
@@ -54,6 +55,7 @@ app.use(hpp());
 
 app.use('/api/v1/posts', postRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/players', playerRouter);
 
 app.all('*', (req, res, next) => {
   // if Next gets argument, its automatically an ERROR and will skip ALL other middlewares

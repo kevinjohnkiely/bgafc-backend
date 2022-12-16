@@ -57,6 +57,8 @@ postSchema.pre('save', function (next) {
   next();
 });
 
+postSchema.index({ slug: 1 });
+
 const Post = mongoose.model('Post', postSchema);
 
 module.exports = Post;
