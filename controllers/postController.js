@@ -91,8 +91,6 @@ exports.getPost = catchAsync(async (req, res, next) => {
 });
 
 exports.createPost = catchAsync(async (req, res, next) => {
-  // const newTour = new Tour({})
-  // newTour.save()
   const newPost = await Post.create(req.body);
 
   res.status(201).json({

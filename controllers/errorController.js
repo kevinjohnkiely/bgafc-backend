@@ -27,7 +27,6 @@ const handleTokenExpiredError = () =>
   new AppError('Your token has expired! Please login again!', 401);
 
 const sendErrorDev = (err, res) => {
-  console.log('send error dev called');
   res.status(err.statusCode).json({
     status: err.status,
     error: err,
@@ -37,7 +36,6 @@ const sendErrorDev = (err, res) => {
 };
 
 const sendErrorProd = (err, res) => {
-  console.log('send error prod called');
   // Operation, trusted error: send message to client
   if (err.isOperationalError) {
     res.status(err.statusCode).json({
