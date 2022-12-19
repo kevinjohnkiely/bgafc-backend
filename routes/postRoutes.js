@@ -16,7 +16,7 @@ const router = express.Router();
 // Temp route for altering posts
 router.route('/changePosts').get(changePosts);
 
-router.route('/').get(getAllPosts).post(createPost);
+router.route('/').get(loggedInOnly, getAllPosts).post(loggedInOnly, createPost);
 router
   .route('/:slug')
   .get(getPost)

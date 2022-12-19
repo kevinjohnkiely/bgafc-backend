@@ -6,7 +6,7 @@ const postSchema = new mongoose.Schema({
     type: String,
     required: [true, 'A post must have a title!'],
     trim: true,
-    maxlength: [40, 'A title cannot be more than 40 characters!'],
+    // maxlength: [100, 'A title cannot be more than 100 characters!'],
     minlength: [5, 'A title must have more than 5 characters!'],
   },
   body: {
@@ -51,13 +51,13 @@ postSchema.pre('save', function (next) {
       this.title
     }-${this.datePublished.getDay()}-${this.datePublished.getMonth()}-${this.datePublished.getFullYear()}`,
     {
-      lowercase: true,
+      lower: true,
     }
   );
   next();
 });
 
-postSchema.index({ slug: 1 });
+// postSchema.index({ slug: -1 });
 
 const Post = mongoose.model('Post', postSchema);
 

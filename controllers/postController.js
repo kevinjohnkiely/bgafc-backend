@@ -5,7 +5,7 @@ const postsOriginal = JSON.parse(
 );
 // const slicedPosts = postsOriginal.slice(0, 100);
 const newPosts = postsOriginal.map((el) => {
-  el.status = 'Published';
+  el.status = 'published';
   // if its an array do this
   // if (Array.isArray(el.categories)) {
   //   for (let x = 0; x < el.categories.length; x++) {
@@ -62,8 +62,8 @@ exports.getAllPosts = catchAsync(async (req, res, next) => {
   const features = new APIFeatures(Post.find(), req.query)
     .filter()
     .sort()
-    .limitFields()
-    .paginate();
+    .limitFields();
+  // .paginate();
   const posts = await features.query;
 
   res.status(200).json({

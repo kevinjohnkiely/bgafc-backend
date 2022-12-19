@@ -37,7 +37,7 @@ const playerSchema = new mongoose.Schema({
 playerSchema.pre('save', function (next) {
   // check if slug already exists
   this.slug = slugify(`${this.firstName}-${this.lastName}`, {
-    lowercase: true,
+    lower: true,
   });
   next();
 });

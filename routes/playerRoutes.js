@@ -2,19 +2,22 @@ const express = require('express');
 const {
   getAllPlayers,
   createPlayer,
-  // getPlayer,
-  // updatePlayer,
-  // deletePlayer,
+  getPlayer,
+  updatePlayer,
+  deletePlayer,
 } = require('../controllers/playerController');
 const { loggedInOnly } = require('../controllers/authController');
 
 const router = express.Router();
 
-router.route('/').get(getAllPlayers).post(loggedInOnly, createPlayer);
-// router
-//   .route('/:slug')
-//   .get(getPlayer)
-//   .patch(loggedInOnly, updatePlayer)
-//   .delete(loggedInOnly, deletePlayer);
+router
+  .route('/')
+  .get(loggedInOnly, getAllPlayers)
+  .post(loggedInOnly, createPlayer);
+router.route('/:slug').get(getPlayer);
+router
+  .route('/:id')
+  .patch(loggedInOnly, updatePlayer)
+  .delete(loggedInOnly, deletePlayer);
 
 module.exports = router;
